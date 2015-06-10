@@ -49,7 +49,7 @@ int main()
     printf(GREEN"Press 0:"CYAN" Two Player Mode.");
     printf(GREEN"\nPress 1:"CYAN" CPU Mode.");
     printf(YELLOW"\nChoose Game Mode: "RESET);
-    scanf(" %d",&cpu);
+    if(scanf(" %d",&cpu) < 0);
     if(cpu!=1 && cpu!=0) {
         goto REPEAT;
     }
@@ -64,7 +64,7 @@ int main()
         if(i%2==0) {
 againx:
 	    	printf(YELLOW"\nPlayer-X:"CYAN" Enter box number(1~9) to input mark-X: "RESET);
-            scanf(" %d",&box_num[i]);
+            if(scanf(" %d",&box_num[i]) < 0);
 			if(box_num[i]<0 || box_num[i]>9) goto againx;
             X_index[m]=box_num[i];
             m++;
@@ -77,7 +77,7 @@ againx:
             } else {
 again0:
 				printf(CYAN"\nPlayer-O:"YELLOW" Enter box number(1~9) to input mark-O: "RESET);
-                scanf(" %d",&box_num[i]);
+                if(scanf(" %d",&box_num[i]) < 0);
 				if(box_num[i]<0 || box_num[i]>9) goto again0;
             }
         }

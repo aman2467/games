@@ -50,7 +50,7 @@ repeat:
 	if(new_chance == 0) goto repeat;
     *usr=*usr+new_chance;
     move_on_board(usr);
-    system("clear");
+    if(system("clear") < 0);
     display_board();
     printf(GREEN"\nWell..You have got "RED"%d"GREEN" this roll..\n"RES,new_chance);
     show_status();
