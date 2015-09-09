@@ -14,23 +14,27 @@
 
 VERBOSE = @
 BASEDIR = $(PWD)
+PONG = ${BASEDIR}/pong
 CC =gcc
 NONE=\033[0m
 GREEN=\033[01;32m
 RED=\033[01;31m
 YELLOW=\033[01;33m
 CYAN=\033[01;36m
-SRC_DIR =$(BASEDIR)/src
 BIN_DIR=$(BASEDIR)/bin
 SOURCES = $(wildcard *.c)
 HEADERS = $(wildcard *.h)
 CFLAGS += -g -O3
 CPPFLAGS += -I. \
 		-I./inc/ \
+		-I./pong/inc
 
-.PHONY: clean all snake_ladder tic_tac_toe info
+.PHONY: clean all pong snake_ladder tic_tac_toe info
 
-all: snake_ladder tic_tac_toe info
+all: pong snake_ladder tic_tac_toe info
+
+pong:
+	${VERBOSE}gcc pong/src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/pong `sdl-config --cflags --libs`
 
 snake_ladder:
 	${VERBOSE}gcc snake-ladder/*.c ${CFLAGS} -o ${BIN_DIR}/snake_ladder
@@ -50,8 +54,9 @@ info:
 	${VERBOSE}echo "${YELLOW}Binary Path :" 
 	${VERBOSE}echo "        ${GREEN}${BIN_DIR}/${NONE}"
 	${VERBOSE}echo "${YELLOW}Binaries :"
-	${VERBOSE}echo "        ${GREEN}1. snake_ladder${NONE}"
-	${VERBOSE}echo "        ${GREEN}2. tic_tac_toe${NONE}"
+	${VERBOSE}echo "        ${GREEN}1. pong${NONE}"
+	${VERBOSE}echo "        ${GREEN}2. snake_ladder${NONE}"
+	${VERBOSE}echo "        ${GREEN}3. tic_tac_toe${NONE}"
 	${VERBOSE}echo " "
 	${VERBOSE}echo "${CYAN}========================================================================================"
 	${VERBOSE}echo " "

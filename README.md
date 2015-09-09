@@ -1,4 +1,6 @@
 # games
 Codes for Linux console based games:
-	1. SNAKE-LADDER
-	2. TIC-TAC-TOE
+------------------------------------
+	1. PONG
+	2. SNAKE-LADDER
+	3. TIC-TAC-TOE
