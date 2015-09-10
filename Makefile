@@ -14,7 +14,6 @@
 
 VERBOSE = @
 BASEDIR = $(PWD)
-PONG = ${BASEDIR}/pong
 CC =gcc
 NONE=\033[0m
 GREEN=\033[01;32m
@@ -29,12 +28,15 @@ CPPFLAGS += -I. \
 		-I./inc/ \
 		-I./pong/inc
 
-.PHONY: clean all pong snake_ladder tic_tac_toe info
+.PHONY: clean all pong screen_saver snake_ladder tic_tac_toe info
 
-all: pong snake_ladder tic_tac_toe info
+all: pong screen_saver snake_ladder tic_tac_toe info
 
 pong:
 	${VERBOSE}gcc pong/src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/pong `sdl-config --cflags --libs`
+
+screen_saver:
+	${VERBOSE}gcc screen_saver/*.c ${CFLAGS} -o ${BIN_DIR}/screen_saver `sdl-config --cflags --libs`
 
 snake_ladder:
 	${VERBOSE}gcc snake-ladder/*.c ${CFLAGS} -o ${BIN_DIR}/snake_ladder
@@ -55,8 +57,9 @@ info:
 	${VERBOSE}echo "        ${GREEN}${BIN_DIR}/${NONE}"
 	${VERBOSE}echo "${YELLOW}Binaries :"
 	${VERBOSE}echo "        ${GREEN}1. pong${NONE}"
-	${VERBOSE}echo "        ${GREEN}2. snake_ladder${NONE}"
-	${VERBOSE}echo "        ${GREEN}3. tic_tac_toe${NONE}"
+	${VERBOSE}echo "        ${GREEN}2. screen_saver${NONE}"
+	${VERBOSE}echo "        ${GREEN}3. snake_ladder${NONE}"
+	${VERBOSE}echo "        ${GREEN}4. tic_tac_toe${NONE}"
 	${VERBOSE}echo " "
 	${VERBOSE}echo "${CYAN}========================================================================================"
 	${VERBOSE}echo " "
