@@ -20,7 +20,7 @@ int main()
 {
 	SDL_Surface* screen;
 	SDL_Event event;
-	char *key;
+	int kill = 0, mouse = 0;
 	int colorG = 0, colorB = 0;
 	int reached = 0;
 
@@ -51,10 +51,20 @@ int main()
 				reached = 0;
 			}
 		}
-		SDL_PumpEvents();
-		key = SDL_GetKeyState(NULL);
-		if(key[SDLK_ESCAPE]) break;
+		while (SDL_PollEvent(&event)) {
+			switch (event.type) {
+				case SDL_MOUSEBUTTONDOWN:
+				case SDL_KEYDOWN:
+					kill = 1;
+					break;
+				case SDL_MOUSEMOTION:
+					if(mouse++ == 20) kill = 1;
+					break;
+				}
+		}
+		if(kill) break;
 	}
+
 	SDL_Quit();
 	return 0;
 }
