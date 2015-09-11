@@ -21,6 +21,7 @@ RED=\033[01;31m
 YELLOW=\033[01;33m
 CYAN=\033[01;36m
 BIN_DIR=$(BASEDIR)/bin
+UTILS_DIR=$(BASEDIR)/pong/utils
 SOURCES = $(wildcard *.c)
 HEADERS = $(wildcard *.h)
 CFLAGS += -g -O3
@@ -33,7 +34,9 @@ CPPFLAGS += -I. \
 all: pong screen_saver snake_ladder tic_tac_toe info
 
 pong:
+	${VERBOSE}sed -i "s,PATH,$(UTILS_DIR),g" $(BASEDIR)/pong/inc/pong.h
 	${VERBOSE}gcc pong/src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/pong `sdl-config --cflags --libs`
+	${VERBOSE}sed -i "s,$(UTILS_DIR),"PATH",g" $(BASEDIR)/pong/inc/pong.h
 
 screen_saver:
 	${VERBOSE}gcc screen_saver/*.c ${CFLAGS} -o ${BIN_DIR}/screen_saver `sdl-config --cflags --libs`

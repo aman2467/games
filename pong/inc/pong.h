@@ -41,21 +41,22 @@
 #define SCREEN_TOP 0
 
 #define BAT_WIDTH 80
-#define BAT_HEIGHT 20
+#define BAT_HEIGHT 10
 #define BAT_START (SCREEN_HEIGHT - BAT_HEIGHT)
 #define BAT_SPEED 10
 
-#define BALL_WIDTH 20
-#define BALL_HEIGHT 20
+#define BALL_WIDTH 12
+#define BALL_HEIGHT 12
 #define BALL_SPEED 3
 
 #define BRICK_WIDTH 40
-#define BRICK_HEIGHT 20
+#define BRICK_HEIGHT 15
 #define BRICK_SPACE_WIDTH (15 + BRICK_WIDTH)
 #define BRICK_SPACE_HEIGHT (15 + BRICK_HEIGHT)
 #define BRICK_SPACER (7*BRICK_HEIGHT)
 
 #define ever ;;
+#define UTILS_DATADIR "PATH"
 
 #define MAX_LIVES 3
 #define MAX_LEVEL 5
@@ -88,21 +89,39 @@ typedef struct game {
 	Ball ball;
 	SDL_Rect bricks[BRICK_ROWS][BRICK_COLUMNS];
 	SDL_Event event;
-	SDL_Surface* screen;
+	SDL_Surface* start_screen;
+	SDL_Surface* play_screen;
+	SDL_Surface* end_screen;
+	SDL_Surface* info_screen;
+	SDL_Surface* restart_screen;
+	SDL_Surface* lives_screen;
 } PONG;
 
 enum game_state {
 	STOP = 0,
 	RUN,
 	PAUSE,
+	RESTART,
+};
+
+enum screen_overlay {
+	START_SCREEN = 0,
+	END_SCREEN,
+	LIVES_SCREEN,
+	RESTART_SCREEN,
+	INFO_SCREEN,
 };
 
 PONG *initPong(int autoplay);
+void draw_overlay(PONG *thisgame, int flag);
+void prepare_database(PONG *thisgame);
 void destroyPong(PONG *thisgame);
+void restartPong(PONG *thisgame);
 void detect_user_key_strokes(PONG *thisgame);
 void update_game(PONG *thisgame);
 void draw_game(PONG *thisgame);
 void updateBall(PONG *thisgame);
-void loadBricks(PONG *thisgame);
+void resetBricks(PONG *thisgame);
 bool isHit(SDL_Rect rect1, SDL_Rect rect2);
+
 #endif

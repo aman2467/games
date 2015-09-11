@@ -18,21 +18,118 @@
 #include <SDL/SDL.h>
 #include <pong.h>
 
+void prepare_database(PONG *thisgame)
+{
+	SDL_Surface *temp;
+	char file[100] = {0};
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/game_start.bmp");
+	temp = SDL_LoadBMP(file);
+	thisgame->start_screen = SDL_DisplayFormat(temp);
+	SDL_FreeSurface(temp);
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/game_info.bmp");
+	temp = SDL_LoadBMP(file);
+	thisgame->info_screen = SDL_DisplayFormat(temp);
+	SDL_FreeSurface(temp);
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/game_over.bmp");
+	temp = SDL_LoadBMP(file);
+	thisgame->end_screen = SDL_DisplayFormat(temp);
+	SDL_FreeSurface(temp);
+}
+
+void draw_overlay(PONG *thisgame, int flag)
+{
+	SDL_Rect src;
+	SDL_Rect dest;
+	SDL_Surface *overlay;
+	int alpha = 0, delay = 0;
+	int show_lives = 0, i;
+
+	/* Reset Background */
+	SDL_FillRect(thisgame->play_screen , NULL ,
+		     SDL_MapRGB(thisgame->play_screen->format, 0, 0, 0));
+
+	switch(flag) {
+		case START_SCREEN:
+			overlay = thisgame->start_screen;
+			delay = 70000;
+			break;
+		case LIVES_SCREEN:
+			show_lives = 1;
+		case INFO_SCREEN:
+			overlay = thisgame->info_screen;
+			delay = 100000;
+			break;
+		case RESTART_SCREEN:
+		case END_SCREEN:
+			overlay = thisgame->end_screen;
+			delay = 70000;
+			break;
+	}
+
+	src.x = 0;
+	src.y = 0;
+	src.w = overlay->w;
+	src.h = overlay->h;
+
+	dest.x = (thisgame->play_screen->w/2) - (overlay->w/2);
+	dest.y = (thisgame->play_screen->h/2) - (overlay->h/2);
+	dest.w = overlay->w;
+	dest.h = overlay->h;
+
+	/* Display overlay screen */
+	while(alpha < 50) {
+		SDL_SetAlpha(overlay, SDL_SRCALPHA, alpha);
+		SDL_BlitSurface(overlay, &src,
+				thisgame->play_screen, &dest);
+		if(show_lives) {
+			SDL_Rect pos;
+
+			pos.w = 20;
+			pos.h = 20;
+			pos.x = 400;
+			pos.y = 100;
+
+			for(i = 0; i < thisgame->lives; i++) {
+				pos.y += 25;
+				SDL_FillRect(overlay, &pos,
+				     SDL_MapRGB(overlay->format,
+						0, 255/(i+1), 0));
+			}
+			for(i = 0; i < MAX_LIVES - thisgame->lives; i++) {
+				pos.y += 25;
+				SDL_FillRect(overlay, &pos,
+				     SDL_MapRGB(overlay->format,
+						0, 0, 0));
+			}
+		}
+		SDL_Flip(thisgame->play_screen);
+		usleep(delay);
+		alpha++;
+	}
+}
+
 PONG *initPong(int autoplay)
 {
 	PONG *newGame = malloc(sizeof(struct game));
 
 	SDL_Init(SDL_INIT_VIDEO);
-	newGame->screen = SDL_SetVideoMode(SCREEN_WIDTH,
+	newGame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
 					   SCREEN_HEIGHT,
 					   SCREEN_BPP,
-					   SDL_SWSURFACE|SDL_RESIZABLE);
+					   SDL_SWSURFACE);
 	SDL_WM_SetCaption("My Pong", NULL);
+	prepare_database(newGame);
 
 	newGame->iscompleted = 0;
 	newGame->state = PAUSE;
 	newGame->lives = MAX_LIVES;
-	newGame->level = 0;
+	newGame->level = 1;
 	newGame->level_score = 0;
 	newGame->total_score = 0;
 	newGame->brick_hits = 0;
@@ -50,10 +147,20 @@ PONG *initPong(int autoplay)
 	newGame->ball.direction.x = 1;
 	newGame->ball.direction.y = 1;
 
-	loadBricks(newGame);
+	resetBricks(newGame);
+	draw_overlay(newGame, START_SCREEN);
+	draw_overlay(newGame, INFO_SCREEN);
 
 	return newGame;
 }
+
+void restartPong(PONG *thisgame)
+{
+	int autoplay = thisgame->autoplay;
+	free(thisgame);
+	thisgame = initPong(autoplay);
+}
+
 void destroyPong(PONG *thisgame)
 {
 	free(thisgame);
@@ -69,6 +176,7 @@ void detect_user_key_strokes(PONG *thisgame)
 				break;
 			}
 	}
+	thisgame->key = SDL_GetKeyState(NULL);
 
 	/* Check key to move BAT left */
 	if (thisgame->key[SDLK_LEFT] &&
@@ -104,7 +212,8 @@ void updateBall(PONG *thisgame)
 
 	if (((thisgame->ball.node.y + BALL_HEIGHT) >= SCREEN_HEIGHT) ||
 	     ((thisgame->ball.node.y + BAT_HEIGHT) >= SCREEN_HEIGHT)) {
-		thisgame->lives--;
+		if(--thisgame->lives)
+			draw_overlay(thisgame, LIVES_SCREEN);
 	}
 
 	if ((thisgame->ball.node.y + BALL_HEIGHT) >= SCREEN_HEIGHT) {
@@ -139,6 +248,7 @@ void updateBall(PONG *thisgame)
 				thisgame->ball.direction.y *= -1;
 				thisgame->brick_hits++;
 				thisgame->level_score += 10;
+				thisgame->total_score += 10;
 			}
 			if(thisgame->brick_hits >= TOTAL_BRICKS) {
 				thisgame->iscompleted = 1;
@@ -162,22 +272,27 @@ void updateBall(PONG *thisgame)
 
 void update_game(PONG *thisgame)
 {
-	thisgame->key = SDL_GetKeyState(NULL);
+	char output[100] = {0};
+
+	updateBall(thisgame);
 	if (thisgame->lives <= 0) {
-		if(system("xcowsay Game Over..!!") < 0) {
+		sprintf(output,"xcowsay You Loose..!! Your score = %d",
+			thisgame->total_score);
+		if(system(output) < 0) {
 			printf("Error : system()\n");
 		}
-		exit(0);
+		draw_overlay(thisgame, END_SCREEN);
+		thisgame->state = STOP;
 	}
 	if(thisgame->iscompleted) {
-		char output[100] = {0};
 		if(thisgame->level == MAX_LEVEL) {
 			sprintf(output, "xcowsay Congratulations, You Completed with total score %d..!!",
 				  thisgame->total_score);
 			if(system(output) < 0){
 				printf("Error : system()\n");
 			}
-			exit(0);
+			draw_overlay(thisgame, RESTART_SCREEN);
+			thisgame->state = RESTART;
 		} else {
 			sprintf(output,"xcowsay Congrates..!! You completed level-%d with score = %d",
 				thisgame->level, thisgame->level_score);
@@ -186,7 +301,6 @@ void update_game(PONG *thisgame)
 			}
 			/* Change to Next Level */
 			thisgame->level++;
-			thisgame->total_score += thisgame->level_score;
 			thisgame->level_score = 0;
 			thisgame->iscompleted = 0;
 			thisgame->brick_hits = 0;
@@ -199,14 +313,13 @@ void update_game(PONG *thisgame)
 			thisgame->ball.node.w = BALL_WIDTH;
 			thisgame->ball.node.h = BALL_HEIGHT;
 			thisgame->ball.node.x = SCREEN_WIDTH / 2;
-			thisgame->ball.node.y = (BRICK_SPACER + SCREEN_HEIGHT) / 2;
+			thisgame->ball.node.y = (BRICK_SPACER+SCREEN_HEIGHT)/2;
 			thisgame->ball.direction.x = 1;
 			thisgame->ball.direction.y = 1;
 
-			loadBricks(thisgame);
+			resetBricks(thisgame);
 		}
 	}
-	updateBall(thisgame);
 	level_delay(thisgame->level);
 }
 
@@ -215,32 +328,31 @@ void draw_game(PONG *thisgame)
 	int row, column;
 
 	/* Draw Background */
-	SDL_FillRect(thisgame->screen , NULL ,
-		     SDL_MapRGB(thisgame->screen->format, 0, 0, 0));
+	SDL_FillRect(thisgame->play_screen , NULL ,
+		     SDL_MapRGB(thisgame->play_screen->format, 0, 0, 0));
 	/* Draw Bat */
-	SDL_FillRect(thisgame->screen, &thisgame->bat.node,
-		     SDL_MapRGB(thisgame->screen->format, 255, 0, 0));
+	SDL_FillRect(thisgame->play_screen, &thisgame->bat.node,
+		     SDL_MapRGB(thisgame->play_screen->format, 255, 0, 0));
 	/* Draw Ball */
-	SDL_FillRect(thisgame->screen, &thisgame->ball.node ,
-		     SDL_MapRGB(thisgame->screen->format, 0, 255, 127));
+	SDL_FillRect(thisgame->play_screen, &thisgame->ball.node ,
+		     SDL_MapRGB(thisgame->play_screen->format, 0, 255, 255));
 	/* Draw Bricks, if any */
 	for (row = 0; row < BRICK_ROWS; row++) {
 		for (column = 0; column < BRICK_COLUMNS; column++) {
 			if (thisgame->bricks[row][column].w != 0) {
-				SDL_FillRect(thisgame->screen,
+				SDL_FillRect(thisgame->play_screen,
 					     &thisgame->bricks[row][column],
-					     SDL_MapRGB(thisgame->screen->format,
-							row*20,
-							20*(thisgame->level+1),
-							column*(20+thisgame->level)));
+					     SDL_MapRGB(thisgame->play_screen->format,
+						       255, 255, 255));
 			}
 		}
 	}
-	/* update the screen */
-	SDL_Flip(thisgame->screen);
+	/* update the play_screen */
+	if(thisgame->state != STOP)
+		SDL_Flip(thisgame->play_screen);
 }
 
-void loadBricks(PONG *thisgame)
+void resetBricks(PONG *thisgame)
 {
 	int row, column;
 	for (row = 0; row < BRICK_ROWS; row++) {
@@ -275,27 +387,37 @@ bool isHit(SDL_Rect rect1, SDL_Rect rect2)
 int main(int argc, char **argv)
 {
 	int autoplay = 0;
+	bool quit_game = 0;
 	PONG *thisgame = NULL;
 
 	if(argc == 2) {
 		autoplay = atoi(argv[1]);
 	}
+
 	thisgame = initPong(autoplay);
 
 	for(ever) {
-		if (thisgame->state) {
-			detect_user_key_strokes(thisgame);
-			if(thisgame->state != PAUSE) {
-				update_game(thisgame);
-			}
-			draw_game(thisgame);
-			level_delay(thisgame->level);
-		} else {
-			break;
-		}
-	}
+		detect_user_key_strokes(thisgame);
 
-	destroyPong(thisgame);
+		switch(thisgame->state) {
+			case RUN:
+				update_game(thisgame);
+			case PAUSE:
+				draw_game(thisgame);
+				break;
+			case RESTART:
+				restartPong(thisgame);
+				break;
+			case STOP:
+			default:
+				destroyPong(thisgame);
+				quit_game = 1;
+				break;
+		}
+
+		if(quit_game) break;
+		level_delay(thisgame->level);
+	}
 
 	return 0;
 }
