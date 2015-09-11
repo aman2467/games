@@ -29,7 +29,7 @@ CPPFLAGS += -I. \
 		-I./inc/ \
 		-I./pong/inc
 
-.PHONY: clean all pong screen_saver snake_ladder tic_tac_toe info
+.PHONY: clean all pong screen_saver snake_ladder tic_tac_toe info install
 
 all: pong screen_saver snake_ladder tic_tac_toe info
 
@@ -66,3 +66,9 @@ info:
 	${VERBOSE}echo " "
 	${VERBOSE}echo "${CYAN}========================================================================================"
 	${VERBOSE}echo " "
+
+install:
+	${VERBOSE}sudo mkdir -p /usr/share/pong
+	${VERBOSE}sudo cp ${UTILS_DIR}/pong.png /usr/share/pong/
+	${VERBOSE}sudo cp ${BIN_DIR}/pong /usr/local/bin/
+	${VERBOSE}sudo cp ${UTILS_DIR}/pong.desktop /usr/share/applications/
