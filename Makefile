@@ -35,7 +35,7 @@ all: pong screen_saver snake_ladder tic_tac_toe info
 
 pong:
 	${VERBOSE}sed -i "s,PATH,$(UTILS_DIR),g" $(BASEDIR)/pong/inc/pong.h
-	${VERBOSE}gcc pong/src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/pong `sdl-config --cflags --libs`
+	${VERBOSE}gcc pong/src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/pong -lSDL -lSDL_mixer
 	${VERBOSE}sed -i "s,$(UTILS_DIR),"PATH",g" $(BASEDIR)/pong/inc/pong.h
 
 screen_saver:

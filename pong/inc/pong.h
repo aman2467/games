@@ -17,6 +17,7 @@
 #define _PONG_H
 
 #include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 
 //#define BIG_SCREEN
 
@@ -75,6 +76,14 @@ typedef struct {
 	SDL_Rect node;
 } Batpad;
 
+typedef struct {
+	int enable;
+	Mix_Chunk *loosechance;
+	Mix_Chunk *theme;
+	Mix_Chunk *hitbat;
+	Mix_Chunk *hitbrick;
+} Gamesound;
+
 typedef struct game {
 	bool iscompleted;
 	int state;
@@ -88,6 +97,7 @@ typedef struct game {
 	Batpad bat;
 	Ball ball;
 	SDL_Rect bricks[BRICK_ROWS][BRICK_COLUMNS];
+	Gamesound sound;
 	SDL_Event event;
 	SDL_Surface* start_screen;
 	SDL_Surface* play_screen;
@@ -113,6 +123,7 @@ enum screen_overlay {
 };
 
 PONG *initPong(int autoplay);
+void init_audio(PONG *thisgame);
 void draw_overlay(PONG *thisgame, int flag);
 void prepare_database(PONG *thisgame);
 void destroyPong(PONG *thisgame);

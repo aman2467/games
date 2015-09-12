@@ -1,8 +1,9 @@
 #!/usr/bin/env xdg-open
+
 [Desktop Entry]
 Name=pong
 Exec=/usr/local/bin/pong
 Terminal=false
 Type=Application
-Icon=/usr/share/pong/pong.png
+Icon=/home/am/.projects/my_git/games/pong/utils/pong.png
 StartupNotify=true

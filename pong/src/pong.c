@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #include <pong.h>
 
 void prepare_database(PONG *thisgame)
@@ -112,13 +113,46 @@ void draw_overlay(PONG *thisgame, int flag)
 		usleep(delay);
 		alpha++;
 	}
+	if(show_lives && thisgame->sound.enable) {
+		Mix_Resume(1);
+	}
+}
+
+void init_audio(PONG *thisgame)
+{
+	char file[100] = {0};
+
+	Mix_OpenAudio(8000, MIX_DEFAULT_FORMAT, 2, 1024);
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/audio/chance_left.wav");
+	thisgame->sound.loosechance = Mix_LoadWAV(file);
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/audio/bat_hit.wav");
+	thisgame->sound.hitbat = Mix_LoadWAV(file);
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/audio/brick_hit.wav");
+	thisgame->sound.hitbrick = Mix_LoadWAV(file);
+
+	strcpy(file, UTILS_DATADIR);
+	strcat(file,"/audio/theme.wav");
+	thisgame->sound.theme = Mix_LoadWAV(file);
+
+	Mix_Volume(1, 10);
+	Mix_PlayChannel(1, thisgame->sound.theme, -1);
+
+	if(!thisgame->sound.enable) {
+		Mix_Pause(-1);
+	}
 }
 
 PONG *initPong(int autoplay)
 {
 	PONG *newGame = malloc(sizeof(struct game));
 
-	SDL_Init(SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO);
 	newGame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
 					   SCREEN_HEIGHT,
 					   SCREEN_BPP,
@@ -146,8 +180,11 @@ PONG *initPong(int autoplay)
 	newGame->ball.node.y = (BRICK_SPACER + SCREEN_HEIGHT) / 2;
 	newGame->ball.direction.x = 1;
 	newGame->ball.direction.y = 1;
+	newGame->sound.enable = 1;
 
 	resetBricks(newGame);
+	init_audio(newGame);
+
 	draw_overlay(newGame, START_SCREEN);
 	draw_overlay(newGame, INFO_SCREEN);
 
@@ -156,14 +193,17 @@ PONG *initPong(int autoplay)
 
 void restartPong(PONG *thisgame)
 {
-	int autoplay = thisgame->autoplay;
-	free(thisgame);
-	thisgame = initPong(autoplay);
+
 }
 
 void destroyPong(PONG *thisgame)
 {
+	Mix_FreeChunk(thisgame->sound.hitbat);
+	Mix_FreeChunk(thisgame->sound.hitbrick);
+	Mix_FreeChunk(thisgame->sound.loosechance);
+	Mix_FreeChunk(thisgame->sound.theme);
 	free(thisgame);
+	Mix_CloseAudio();
 	SDL_Quit();
 }
 
@@ -190,11 +230,27 @@ void detect_user_key_strokes(PONG *thisgame)
 	} else if (thisgame->key[SDLK_SPACE]) {
 		if(thisgame->state == PAUSE) {
 			thisgame->state = RUN;
+			if(thisgame->sound.enable) {
+				Mix_Resume(-1);
+			}
 			usleep(100000);
 		} else {
+			if(thisgame->sound.enable) {
+				Mix_Pause(-1);
+			}
 			thisgame->state = PAUSE;
 			sleep(1);
 		}
+	/* Check key to enable/disable sound */
+	} else if(thisgame->key[SDLK_m]) {
+		if(thisgame->sound.enable == 1) {
+			thisgame->sound.enable = 0;
+			Mix_Pause(-1);
+		} else {
+			thisgame->sound.enable = 1;
+			Mix_Resume(-1);
+		}
+		usleep(100000);
 	/* Check key to exit Game */
 	} else if(thisgame->key[SDLK_ESCAPE]) {
 		thisgame->state = STOP;
@@ -212,8 +268,14 @@ void updateBall(PONG *thisgame)
 
 	if (((thisgame->ball.node.y + BALL_HEIGHT) >= SCREEN_HEIGHT) ||
 	     ((thisgame->ball.node.y + BAT_HEIGHT) >= SCREEN_HEIGHT)) {
-		if(--thisgame->lives)
+		if(--thisgame->lives) {
+			if(thisgame->sound.enable) {
+				Mix_Pause(1);
+				usleep(1000);
+				Mix_PlayChannel(-1, thisgame->sound.loosechance, 0);
+			}
 			draw_overlay(thisgame, LIVES_SCREEN);
+		}
 	}
 
 	if ((thisgame->ball.node.y + BALL_HEIGHT) >= SCREEN_HEIGHT) {
@@ -225,6 +287,9 @@ void updateBall(PONG *thisgame)
 	}
 
 	if (isHit(thisgame->bat.node, thisgame->ball.node)) {
+		if(thisgame->sound.enable) {
+			Mix_PlayChannel(-1, thisgame->sound.hitbat, 0);
+		}
 		thisgame->ball.direction.y = -1;
 	}
 
@@ -243,6 +308,9 @@ void updateBall(PONG *thisgame)
 			if (isHit(thisgame->ball.node,
 					thisgame->bricks[row][column]) &&
 			    thisgame->bricks[row][column].w != 0) {
+				if(thisgame->sound.enable) {
+					Mix_PlayChannel(-1, thisgame->sound.hitbrick, 0);
+				}
 				thisgame->bricks[row][column].w = 0;
 				thisgame->bricks[row][column].h = 0;
 				thisgame->ball.direction.y *= -1;
@@ -276,10 +344,18 @@ void update_game(PONG *thisgame)
 
 	updateBall(thisgame);
 	if (thisgame->lives <= 0) {
+		if(thisgame->sound.enable) {
+			Mix_Pause(1);
+			usleep(1000);
+			Mix_PlayChannel(-1, thisgame->sound.loosechance, 0);
+		}
 		sprintf(output,"xcowsay You Loose..!! Your score = %d",
 			thisgame->total_score);
 		if(system(output) < 0) {
 			printf("Error : system()\n");
+		}
+		if(thisgame->sound.enable) {
+			Mix_Resume(1);
 		}
 		draw_overlay(thisgame, END_SCREEN);
 		thisgame->state = STOP;
@@ -293,6 +369,8 @@ void update_game(PONG *thisgame)
 			}
 			draw_overlay(thisgame, RESTART_SCREEN);
 			thisgame->state = RESTART;
+			/* Reset Level */
+			thisgame->level = 1;
 		} else {
 			sprintf(output,"xcowsay Congrates..!! You completed level-%d with score = %d",
 				thisgame->level, thisgame->level_score);
@@ -301,24 +379,24 @@ void update_game(PONG *thisgame)
 			}
 			/* Change to Next Level */
 			thisgame->level++;
-			thisgame->level_score = 0;
-			thisgame->iscompleted = 0;
-			thisgame->brick_hits = 0;
-			thisgame->lives = MAX_LIVES;
-			thisgame->state = PAUSE;
-			thisgame->bat.node.w = BAT_WIDTH;
-			thisgame->bat.node.h = BAT_HEIGHT;
-			thisgame->bat.node.x = (SCREEN_WIDTH - BAT_WIDTH)/2 ;
-			thisgame->bat.node.y = BAT_START - BAT_HEIGHT;
-			thisgame->ball.node.w = BALL_WIDTH;
-			thisgame->ball.node.h = BALL_HEIGHT;
-			thisgame->ball.node.x = SCREEN_WIDTH / 2;
-			thisgame->ball.node.y = (BRICK_SPACER+SCREEN_HEIGHT)/2;
-			thisgame->ball.direction.x = 1;
-			thisgame->ball.direction.y = 1;
-
-			resetBricks(thisgame);
 		}
+		thisgame->level_score = 0;
+		thisgame->iscompleted = 0;
+		thisgame->brick_hits = 0;
+		thisgame->lives = MAX_LIVES;
+		thisgame->state = PAUSE;
+		thisgame->bat.node.w = BAT_WIDTH;
+		thisgame->bat.node.h = BAT_HEIGHT;
+		thisgame->bat.node.x = (SCREEN_WIDTH - BAT_WIDTH)/2 ;
+		thisgame->bat.node.y = BAT_START - BAT_HEIGHT;
+		thisgame->ball.node.w = BALL_WIDTH;
+		thisgame->ball.node.h = BALL_HEIGHT;
+		thisgame->ball.node.x = SCREEN_WIDTH / 2;
+		thisgame->ball.node.y = (BRICK_SPACER+SCREEN_HEIGHT)/2;
+		thisgame->ball.direction.x = 1;
+		thisgame->ball.direction.y = 1;
+
+		resetBricks(thisgame);
 	}
 	level_delay(thisgame->level);
 }
