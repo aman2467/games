@@ -140,7 +140,7 @@ void init_audio(PONG *thisgame)
 	strcat(file,"/audio/theme.wav");
 	thisgame->sound.theme = Mix_LoadWAV(file);
 
-	Mix_Volume(1, 10);
+	Mix_Volume(1, thisgame->sound.volume);
 	Mix_PlayChannel(1, thisgame->sound.theme, -1);
 
 	if(!thisgame->sound.enable) {
@@ -156,8 +156,9 @@ PONG *initPong(int autoplay)
 	newGame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
 					   SCREEN_HEIGHT,
 					   SCREEN_BPP,
-					   SDL_SWSURFACE);
+					   SDL_SWSURFACE|SDL_FULLSCREEN);
 	SDL_WM_SetCaption("My Pong", NULL);
+	SDL_ShowCursor(SDL_DISABLE);
 	prepare_database(newGame);
 
 	newGame->iscompleted = 0;
@@ -181,6 +182,7 @@ PONG *initPong(int autoplay)
 	newGame->ball.direction.x = 1;
 	newGame->ball.direction.y = 1;
 	newGame->sound.enable = 1;
+	newGame->sound.volume = 20;
 
 	resetBricks(newGame);
 	init_audio(newGame);
@@ -275,6 +277,7 @@ void updateBall(PONG *thisgame)
 				Mix_PlayChannel(-1, thisgame->sound.loosechance, 0);
 			}
 			draw_overlay(thisgame, LIVES_SCREEN);
+			thisgame->state = PAUSE;
 		}
 	}
 
@@ -407,7 +410,7 @@ void draw_game(PONG *thisgame)
 
 	/* Draw Background */
 	SDL_FillRect(thisgame->play_screen , NULL ,
-		     SDL_MapRGB(thisgame->play_screen->format, 0, 0, 0));
+		     SDL_MapRGB(thisgame->play_screen->format, 0, 0, 15));
 	/* Draw Bat */
 	SDL_FillRect(thisgame->play_screen, &thisgame->bat.node,
 		     SDL_MapRGB(thisgame->play_screen->format, 255, 0, 0));

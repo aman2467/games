@@ -78,6 +78,7 @@ typedef struct {
 
 typedef struct {
 	int enable;
+	int volume;
 	Mix_Chunk *loosechance;
 	Mix_Chunk *theme;
 	Mix_Chunk *hitbat;
