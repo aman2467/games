@@ -5,5 +5,5 @@ Name=pong
 Exec=/usr/local/bin/pong
 Terminal=false
 Type=Application
-Icon=/home/am/.projects/my_git/games/pong/utils/pong.png
+Icon=/usr/share/pong/pong.png
 StartupNotify=true
