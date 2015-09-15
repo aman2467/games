@@ -156,7 +156,7 @@ PONG *initPong(int autoplay)
 	newGame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
 					   SCREEN_HEIGHT,
 					   SCREEN_BPP,
-					   SDL_SWSURFACE|SDL_FULLSCREEN);
+					   SDL_SWSURFACE);
 	SDL_WM_SetCaption("My Pong", NULL);
 	SDL_ShowCursor(SDL_DISABLE);
 	prepare_database(newGame);
@@ -243,6 +243,18 @@ void detect_user_key_strokes(PONG *thisgame)
 			thisgame->state = PAUSE;
 			sleep(1);
 		}
+	/* Toggle Full screen */
+	} else if(thisgame->key[SDLK_f]) {
+		int flags = thisgame->play_screen->flags;
+		thisgame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
+							 SCREEN_HEIGHT,
+							 SCREEN_BPP,
+							 thisgame->play_screen->flags^SDL_FULLSCREEN);
+		if(NULL == thisgame->play_screen)
+			thisgame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
+								 SCREEN_HEIGHT,
+								 SCREEN_BPP,
+								 flags);
 	/* Check key to enable/disable sound */
 	} else if(thisgame->key[SDLK_m]) {
 		if(thisgame->sound.enable == 1) {
