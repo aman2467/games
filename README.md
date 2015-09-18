@@ -2,11 +2,15 @@
 
 Codes for fun:
 --------------
-	1. PONG
-	2. SCREEN-SAVER
-	3. SNAKE-LADDER
-	4. TIC-TAC-TOE
+	> console-games
+		1. snake-ladder
+		2. tic-tac-toe
 
+	> video-games
+		1. pong
+		2. screen-saver
+		3. snake-ladder
+		4. lock
 
 Screen-shots of Games:
 ----------------------

@@ -34,7 +34,7 @@ all: snake_ladder
 
 snake_ladder:
 	${VERBOSE}sed -i "s,PATH,$(UTILS_DIR),g" $(BASEDIR)/inc/sl_board.h
-	${VERBOSE}gcc src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/sl_board -lSDL
+	${VERBOSE}gcc src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/snake_ladder -lSDL
 	${VERBOSE}sed -i "s,$(UTILS_DIR),"PATH",g" $(BASEDIR)/inc/sl_board.h
 
 clean:

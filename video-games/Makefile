@@ -29,9 +29,9 @@ CPPFLAGS += -I. \
 		-I./inc/ \
 		-I./pong/inc
 
-.PHONY: clean all lock pong screen_saver sl_board snake_ladder tic_tac_toe info install
+.PHONY: clean all lock pong screen_saver snake_ladder info install
 
-all: lock pong screen_saver sl_board snake_ladder tic_tac_toe info
+all: lock pong screen_saver snake_ladder info
 
 lock:
 	${VERBOSE}sed -i "s,PATH,$(BASEDIR)/lock,g" $(BASEDIR)/lock/lock.c
@@ -47,15 +47,9 @@ screen_saver:
 	${VERBOSE}gcc screen_saver/*.c ${CFLAGS} -o ${BIN_DIR}/screen_saver `sdl-config --cflags --libs`
 
 snake_ladder:
-	${VERBOSE}gcc snake-ladder/*.c ${CFLAGS} -o ${BIN_DIR}/snake_ladder
-
-sl_board:
-	${VERBOSE}sed -i "s,SL_BOARD,$(BASEDIR)/sl_board,g" $(BASEDIR)/sl_board/Makefile
-	${VERBOSE}make -s -C sl_board/
-	${VERBOSE}sed -i "s,$(BASEDIR)/sl_board,"SL_BOARD",g" $(BASEDIR)/sl_board/Makefile
-
-tic_tac_toe:
-	${VERBOSE}gcc tic-tac-toe/*.c ${CFLAGS} -o ${BIN_DIR}/tic_tac_toe
+	${VERBOSE}sed -i "s,SL_BOARD,$(BASEDIR)/snake_ladder,g" $(BASEDIR)/snake_ladder/Makefile
+	${VERBOSE}make -s -C snake_ladder/
+	${VERBOSE}sed -i "s,$(BASEDIR)/snake_ladder,"SL_BOARD",g" $(BASEDIR)/snake_ladder/Makefile
 
 clean:
 	${VERBOSE}rm -f $(BIN_DIR)/*
@@ -72,9 +66,7 @@ info:
 	${VERBOSE}echo "        ${GREEN}1. lock${NONE}"
 	${VERBOSE}echo "        ${GREEN}2. pong${NONE}"
 	${VERBOSE}echo "        ${GREEN}3. screen_saver${NONE}"
-	${VERBOSE}echo "        ${GREEN}4. sl_board${NONE}(graphics based)"
-	${VERBOSE}echo "        ${GREEN}5. snake_ladder${NONE}(console based)"
-	${VERBOSE}echo "        ${GREEN}6. tic_tac_toe${NONE}"
+	${VERBOSE}echo "        ${GREEN}4. snake_ladder${NONE}"
 	${VERBOSE}echo " "
 	${VERBOSE}echo "${CYAN}========================================================================================"
 	${VERBOSE}echo " "
