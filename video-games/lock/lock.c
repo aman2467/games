@@ -35,11 +35,11 @@ void display_screen(void)
 	dest.w = lock->w;
 	dest.h = lock->h;
 
-	while(alpha++ < 40) {
+	while(alpha++ < 200) {
 		SDL_SetAlpha(lock, SDL_SRCALPHA, alpha);
 		SDL_BlitSurface(lock, &src, screen, &dest);
 		SDL_Flip(screen);
-		usleep(20000);
+		usleep(500);
 	}
 	alarm(7);
 }
