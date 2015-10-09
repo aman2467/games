@@ -29,14 +29,19 @@ CPPFLAGS += -I. \
 		-I./inc/ \
 		-I./pong/inc
 
-.PHONY: clean all lock pong screen_saver snake_ladder info install
+.PHONY: clean all lock num_slider pong screen_saver snake_ladder info install
 
-all: lock pong screen_saver snake_ladder info
+all: lock num_slider pong screen_saver snake_ladder info
 
 lock:
 	${VERBOSE}sed -i "s,PATH,$(BASEDIR)/lock,g" $(BASEDIR)/lock/lock.c
 	${VERBOSE}gcc lock/*.c ${CFLAGS} -o ${BIN_DIR}/lock -lSDL
 	${VERBOSE}sed -i "s,$(BASEDIR)/lock,"PATH",g" $(BASEDIR)/lock/lock.c
+
+num_slider:
+	${VERBOSE}sed -i "s,NUM_SLIDER,$(BASEDIR)/num_slider,g" $(BASEDIR)/num_slider/Makefile
+	${VERBOSE}make -s -C num_slider/
+	${VERBOSE}sed -i "s,$(BASEDIR)/num_slider,"NUM_SLIDER",g" $(BASEDIR)/num_slider/Makefile
 
 pong:
 	${VERBOSE}sed -i "s,PATH,$(UTILS_DIR),g" $(BASEDIR)/pong/inc/pong.h
@@ -64,9 +69,10 @@ info:
 	${VERBOSE}echo "        ${GREEN}${BIN_DIR}/${NONE}"
 	${VERBOSE}echo "${YELLOW}Binaries :"
 	${VERBOSE}echo "        ${GREEN}1. lock${NONE}"
-	${VERBOSE}echo "        ${GREEN}2. pong${NONE}"
-	${VERBOSE}echo "        ${GREEN}3. screen_saver${NONE}"
-	${VERBOSE}echo "        ${GREEN}4. snake_ladder${NONE}"
+	${VERBOSE}echo "        ${GREEN}2. num_slider${NONE}"
+	${VERBOSE}echo "        ${GREEN}3. pong${NONE}"
+	${VERBOSE}echo "        ${GREEN}4. screen_saver${NONE}"
+	${VERBOSE}echo "        ${GREEN}5. snake_ladder${NONE}"
 	${VERBOSE}echo " "
 	${VERBOSE}echo "${CYAN}========================================================================================"
 	${VERBOSE}echo " "
