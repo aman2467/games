@@ -8,9 +8,10 @@ Codes for fun:
 
 	> video-games
 		1. pong
-		2. screen-saver
-		3. snake-ladder
-		4. lock
+		2. num-slider
+		3. screen-saver
+		4. snake-ladder
+		5. lock
 
 Screen-shots of Games:
 ----------------------
