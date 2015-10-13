@@ -18,6 +18,8 @@
 #include <stdbool.h>
 #include <SDL/SDL.h>
 #include <num_slider.h>
+#include <fcntl.h>
+#include <sys/file.h>
 
 void prepare_database(Game *thisgame)
 {
@@ -376,6 +378,7 @@ int main(int argc, char **argv)
 {
 	bool quit_game = 0;
 	Game *thisgame = NULL;
+	int lock_fd, ret;
 
 	if(argc == 2) {
 		if(strcmp(argv[1],"-h") == 0) {
@@ -386,6 +389,16 @@ int main(int argc, char **argv)
 	} else if(argc > 2) {
 		printf("\nUsage : %s\n", argv[0]);
 		printf("\n      : %s -h\n", argv[0]);
+		exit(0);
+	}
+	lock_fd = open("/var/run/num_slider.pid", O_RDONLY);
+	if(lock_fd < 0) {
+		printf("Error : Opening file\n");
+		exit(0);
+	}
+	ret = flock(lock_fd, LOCK_EX | LOCK_NB);
+	/* check if this is the only instance */
+	if(ret != 0) {
 		exit(0);
 	}
 	thisgame = initGame();
