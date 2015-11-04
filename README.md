@@ -9,9 +9,7 @@ Codes for fun:
 	> video-games
 		1. pong
 		2. num-slider
-		3. screen-saver
-		4. snake-ladder
-		5. lock
+		3. snake-ladder
 
 Screen-shots of Games:
 ----------------------

@@ -29,14 +29,9 @@ CPPFLAGS += -I. \
 		-I./inc/ \
 		-I./pong/inc
 
-.PHONY: clean all lock num_slider pong screen_saver snake_ladder info install
+.PHONY: clean all num_slider pong snake_ladder info install
 
-all: lock num_slider pong screen_saver snake_ladder info
-
-lock:
-	${VERBOSE}sed -i "s,PATH,$(BASEDIR)/lock,g" $(BASEDIR)/lock/lock.c
-	${VERBOSE}gcc lock/*.c ${CFLAGS} -o ${BIN_DIR}/lock -lSDL
-	${VERBOSE}sed -i "s,$(BASEDIR)/lock,"PATH",g" $(BASEDIR)/lock/lock.c
+all: num_slider pong snake_ladder info
 
 num_slider:
 	${VERBOSE}sed -i "s,NUM_SLIDER,$(BASEDIR)/num_slider,g" $(BASEDIR)/num_slider/Makefile
@@ -47,9 +42,6 @@ pong:
 	${VERBOSE}sed -i "s,PATH,$(UTILS_DIR),g" $(BASEDIR)/pong/inc/pong.h
 	${VERBOSE}gcc pong/src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/pong -lSDL -lSDL_mixer
 	${VERBOSE}sed -i "s,$(UTILS_DIR),"PATH",g" $(BASEDIR)/pong/inc/pong.h
-
-screen_saver:
-	${VERBOSE}gcc screen_saver/*.c ${CFLAGS} -o ${BIN_DIR}/screen_saver `sdl-config --cflags --libs`
 
 snake_ladder:
 	${VERBOSE}sed -i "s,SL_BOARD,$(BASEDIR)/snake_ladder,g" $(BASEDIR)/snake_ladder/Makefile
@@ -68,11 +60,9 @@ info:
 	${VERBOSE}echo "${YELLOW}Binary Path :" 
 	${VERBOSE}echo "        ${GREEN}${BIN_DIR}/${NONE}"
 	${VERBOSE}echo "${YELLOW}Binaries :"
-	${VERBOSE}echo "        ${GREEN}1. lock${NONE}"
-	${VERBOSE}echo "        ${GREEN}2. num_slider${NONE}"
-	${VERBOSE}echo "        ${GREEN}3. pong${NONE}"
-	${VERBOSE}echo "        ${GREEN}4. screen_saver${NONE}"
-	${VERBOSE}echo "        ${GREEN}5. snake_ladder${NONE}"
+	${VERBOSE}echo "        ${GREEN}1. num_slider${NONE}"
+	${VERBOSE}echo "        ${GREEN}2. pong${NONE}"
+	${VERBOSE}echo "        ${GREEN}3. snake_ladder${NONE}"
 	${VERBOSE}echo " "
 	${VERBOSE}echo "${CYAN}========================================================================================"
 	${VERBOSE}echo " "
