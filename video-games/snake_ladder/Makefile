@@ -14,6 +14,7 @@
 
 VERBOSE = @
 BASEDIR = "SL_BOARD"
+#BASEDIR = $(PWD)
 CC =gcc
 NONE=\033[0m
 GREEN=\033[01;32m
@@ -24,9 +25,10 @@ BIN_DIR=$(BASEDIR)/../bin
 UTILS_DIR=$(BASEDIR)/utils
 SOURCES = $(wildcard *.c)
 HEADERS = $(wildcard *.h)
-CFLAGS += -g -O3
+CFLAGS += -g -O3 -Wall
 CPPFLAGS += -I. \
 		-I./inc/
+LDFLAGS += -lSDL_ttf -lSDL
 
 .PHONY: clean all snake_ladder info
 
@@ -34,7 +36,7 @@ all: snake_ladder
 
 snake_ladder:
 	${VERBOSE}sed -i "s,PATH,$(UTILS_DIR),g" $(BASEDIR)/inc/sl_board.h
-	${VERBOSE}gcc src/*.c ${CFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/snake_ladder -lSDL
+	${VERBOSE}gcc src/*.c ${CFLAGS} ${LDFLAGS} ${CPPFLAGS} -o ${BIN_DIR}/snake_ladder
 	${VERBOSE}sed -i "s,$(UTILS_DIR),"PATH",g" $(BASEDIR)/inc/sl_board.h
 
 clean:

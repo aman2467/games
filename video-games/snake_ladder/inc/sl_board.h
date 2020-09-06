@@ -36,7 +36,6 @@ typedef struct player {
 	char name[20];
 	bool play_again;
 	int score;
-	int dice_val;
 } Player;
 
 typedef struct game {
@@ -53,6 +52,7 @@ typedef struct game {
 	SDL_Surface* dice;
 	SDL_Surface* play_screen;
 	SDL_Surface* player_surf;
+	TTF_Font *font;
 } Game;
 
 enum game_state {

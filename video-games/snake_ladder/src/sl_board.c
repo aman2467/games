@@ -16,7 +16,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <SDL/SDL.h>
+#include <SDL/SDL_ttf.h>
 #include <SDL/SDL_mixer.h>
 #include <sl_board.h>
 
@@ -45,7 +47,6 @@ void prepare_database(Game *thisgame)
 	SDL_SetColorKey(temp, SDL_SRCCOLORKEY, colorkey);
 	thisgame->dice = SDL_DisplayFormat(temp);
 	SDL_FreeSurface(temp);
-
 }
 
 void draw_dice(Game *thisgame, int dice)
@@ -66,7 +67,6 @@ void draw_dice(Game *thisgame, int dice)
 
 	SDL_BlitSurface(overlay, &src, thisgame->play_screen, &dest);
 	SDL_Flip(thisgame->play_screen);
-	thisgame->player[thisgame->curr_player].dice_val = 0;
 }
 
 int roll_dice(Game *thisgame)
@@ -90,10 +90,10 @@ void draw_board(Game *thisgame, int surface, int score)
 	SDL_Rect dest;
 	SDL_Surface *overlay;
 	int x, y, blit = 1;
-	char color_key;
+	char color_key = 0;
 
-	if((score/10)%2 != 0) {
-		if(score%10 == 0) {
+	if ((score/10)%2 != 0) {
+		if (score%10 == 0) {
 			x = (9*BLOCK_WIDTH);
 			y = ((10-(score/10))*BLOCK_HEIGHT);
 		} else {
@@ -101,7 +101,7 @@ void draw_board(Game *thisgame, int surface, int score)
 			y = ((9-(score/10))*BLOCK_HEIGHT);
 		}
 	} else {
-		if(score%10 == 0) {
+		if (score%10 == 0) {
 			x = 0;
 			y = ((10-(score/10))*BLOCK_HEIGHT);
 		} else {
@@ -110,7 +110,7 @@ void draw_board(Game *thisgame, int surface, int score)
 		}
 	}
 
-	switch(surface) {
+	switch (surface) {
 		case BOARD:
 			overlay = thisgame->board;
 			src.x = 0;
@@ -194,7 +194,7 @@ void draw_board(Game *thisgame, int surface, int score)
 			SDL_FillRect(thisgame->play_screen, NULL, color_key);
 			break;
 	}
-	if(blit)
+	if (blit)
 		SDL_BlitSurface(overlay, &src, thisgame->play_screen, &dest);
 }
 
@@ -257,14 +257,16 @@ int sl_lut(int out)
 
 Game *initGame(int tot_players)
 {
+	char font_file[128] = {0};
 	int i = 0;
 	Game *thisgame = malloc(sizeof(struct game));
 
 	SDL_Init(SDL_INIT_VIDEO);
+	TTF_Init();
 	thisgame->play_screen = SDL_SetVideoMode(SCREEN_WIDTH,
 					   SCREEN_HEIGHT,
 					   32,
-					   SDL_SWSURFACE|SDL_FULLSCREEN);
+					   SDL_SWSURFACE | SDL_FULLSCREEN);
 
 	/* Reset Background */
 	SDL_FillRect(thisgame->play_screen , NULL ,
@@ -281,6 +283,9 @@ Game *initGame(int tot_players)
 	for(i = 0; i < tot_players; i++) {
 		thisgame->player[i].score = 0;
 	}
+	strcpy(font_file, UTILS_DATADIR);
+	strcat(font_file,"/arial.ttf");
+	thisgame->font = TTF_OpenFont(font_file, 25);
 	srand(getpid());
 	draw_board(thisgame, 0, 0);
 	SDL_Flip(thisgame->play_screen);
@@ -290,7 +295,9 @@ Game *initGame(int tot_players)
 
 void destroyGame(Game *thisgame)
 {
+	TTF_CloseFont(thisgame->font);
 	free(thisgame);
+	TTF_Quit();
 	SDL_Quit();
 }
 
@@ -304,21 +311,20 @@ void detect_key_strokes(Game *thisgame)
 	if(thisgame->key[SDLK_RETURN]) {
 		thisgame->update_board = 1;
 		score = roll_dice(thisgame);
-		if(thisgame->player[thisgame->curr_player].score+score == 100) {
+		if (thisgame->player[thisgame->curr_player].score+score == 100) {
 			thisgame->iscompleted = 1;
 			thisgame->player[thisgame->curr_player].score = 100;
-		} else if(thisgame->player[thisgame->curr_player].score+score < 100) {
+		} else if (thisgame->player[thisgame->curr_player].score + score < 100) {
 			thisgame->player[thisgame->curr_player].score += score;
 		}
-		if(score == 6)
+		if (score == 6)
 			thisgame->player[thisgame->curr_player].play_again = 1;
-		thisgame->player[thisgame->curr_player].dice_val = score;
 #ifdef _DEBUG
 		printf("player = %d, score = %d(%d)\t next_player = %d\n",
 		       thisgame->curr_player+1,
 		       score,
 		       thisgame->player[thisgame->curr_player].score,
-		       (thisgame->curr_player+2 > thisgame->tot_players)?1:thisgame->curr_player+2);
+		       (thisgame->curr_player + 2 > thisgame->tot_players)?1:thisgame->curr_player+2);
 #endif
 	/* Check key to exit Game */
 	} else if(thisgame->key[SDLK_ESCAPE]) {
@@ -330,19 +336,18 @@ void update_board(Game *thisgame)
 {
 	int i, skip = 0;
 	int score = 0, new_score = 0;
-	int dice_val = thisgame->player[thisgame->curr_player].dice_val;
 
 	draw_board(thisgame, BOARD, 0);
 	for(i = 0; i < thisgame->tot_players; i++) {
 		if(i != thisgame->curr_player)
-			draw_board(thisgame, i+1, thisgame->player[i].score);
+			draw_board(thisgame, i + 1, thisgame->player[i].score);
 	}
-	draw_board(thisgame, thisgame->curr_player+1,
+	draw_board(thisgame, thisgame->curr_player + 1,
 		   thisgame->player[thisgame->curr_player].score);
 
 	SDL_Flip(thisgame->play_screen);
 	score = thisgame->player[thisgame->curr_player].score;
-	if(!thisgame->player[thisgame->curr_player].play_again) {
+	if (!thisgame->player[thisgame->curr_player].play_again) {
 		new_score = sl_lut(thisgame->player[thisgame->curr_player].score);
 	} else {
 		new_score = score;
@@ -350,13 +355,13 @@ void update_board(Game *thisgame)
 		thisgame->player[thisgame->curr_player].play_again = 0;
 	}
 
-	if(new_score != score) {
+	if (new_score != score) {
 		sleep(1);
 		thisgame->player[thisgame->curr_player].score = new_score;
 		draw_board(thisgame, BOARD, 0);
-		for(i = 0; i < thisgame->tot_players; i++) {
-			if(i != thisgame->curr_player)
-				draw_board(thisgame, i+1,
+		for (i = 0; i < thisgame->tot_players; i++) {
+			if (i != thisgame->curr_player)
+				draw_board(thisgame, i + 1,
 					   thisgame->player[i].score);
 		}
 		draw_board(thisgame, thisgame->curr_player+1,
@@ -364,12 +369,13 @@ void update_board(Game *thisgame)
 		SDL_Flip(thisgame->play_screen);
 	}
 
-	if((score >= new_score) && !skip) {
+	if ((score >= new_score) && !skip) {
 			thisgame->curr_player++;
-		if(thisgame->curr_player >= thisgame->tot_players)
+		if (thisgame->curr_player >= thisgame->tot_players)
 			thisgame->curr_player = 0;
 	}
-	if(new_score == 100) thisgame->iscompleted = 1;
+	if (new_score == 100)
+		thisgame->iscompleted = 1;
 }
 
 int isCompleted(Game *thisgame)
@@ -377,8 +383,8 @@ int isCompleted(Game *thisgame)
 	int i;
 	int result = 0;
 
-	if(thisgame->iscompleted) {
-		for(i = 0; i < thisgame->tot_players; i++) {
+	if (thisgame->iscompleted) {
+		for (i = 0; i < thisgame->tot_players; i++) {
 			switch(thisgame->player[i].score) {
 				case 100:
 					draw_board(thisgame, GAME_OVER, i+1);
@@ -394,33 +400,71 @@ int isCompleted(Game *thisgame)
 	return result;
 }
 
+static void update_player_chance(Game *thisgame)
+{
+	SDL_Color player_color[] = {
+		{0, 0, 255},
+		{0, 255, 0},
+		{255, 0, 0},
+		{255, 255, 0},
+		{200, 200, 200},
+	};
+	SDL_Rect location = {1100, 100, 0, 0};
+	SDL_Surface *surface = NULL;
+	char text[32] = {0};
+	SDL_Color color;
+	static int last_player = -1;
+
+	/* reset background */
+	if (-1 != last_player) {
+		sprintf(text, "Player %d", last_player + 1);
+		color = player_color[4]; /* background color */
+		surface = TTF_RenderText_Solid(thisgame->font, text, color);
+		SDL_BlitSurface(surface, NULL, thisgame->play_screen,
+				&location);
+		SDL_Flip(thisgame->play_screen);
+	}
+	last_player = thisgame->curr_player;
+
+	/* update new player */
+	sprintf(text, "Player %d", thisgame->curr_player + 1);
+	color = player_color[thisgame->curr_player];
+	surface = TTF_RenderText_Solid(thisgame->font, text, color);
+	SDL_BlitSurface(surface, NULL, thisgame->play_screen, &location);
+
+	SDL_Flip(thisgame->play_screen);
+}
+
 int main(int argc, char **argv)
 {
 	int num_players = 2;
 	bool quit_game = 0;
 	Game *thisgame = NULL;
 
-	if(argc == 2) {
-		if(strcmp(argv[1],"-h") == 0) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "-h") == 0) {
 			printf("\nUsage %s <no of players>\n", argv[0]);
 			exit(0);
 		} else {
 			num_players = atoi(argv[1]);
 		}
-	} else if(argc > 2) {
+	} else if (argc > 2) {
 		printf("\nUsage %s <no of players>\n", argv[0]);
 		exit(0);
 	}
 	assert(num_players <= MAX_PLAYERS);
 	thisgame = initGame(num_players);
 
-	for(ever) {
-		switch(thisgame->state) {
+	update_player_chance(thisgame);
+	roll_dice(thisgame);
+	for (ever) {
+		switch (thisgame->state) {
 			case RUN:
 				detect_key_strokes(thisgame);
-				if(thisgame->update_board) {
+				if (thisgame->update_board) {
 					update_board(thisgame);
-					if(isCompleted(thisgame)) {
+					update_player_chance(thisgame);
+					if (isCompleted(thisgame)) {
 						thisgame->state = STOP;
 					}
 					thisgame->update_board = 0;
@@ -433,8 +477,10 @@ int main(int argc, char **argv)
 				break;
 		}
 
-		if(quit_game) break;
-		usleep(8000);
+		if (quit_game)
+			break;
+
+		usleep(800);
 	}
 
 	return 0;
