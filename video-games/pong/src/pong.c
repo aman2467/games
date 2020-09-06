@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 #include <pong.h>

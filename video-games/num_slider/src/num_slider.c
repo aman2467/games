@@ -19,6 +19,7 @@
 #include <SDL/SDL.h>
 #include <num_slider.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <sys/file.h>
 
 void prepare_database(Game *thisgame)
@@ -209,8 +210,8 @@ void get_user_input(Game *thisgame)
 
 void update_timer(Game *thisgame)
 {
-	char caption[6] = {0};
-	char title_bar[50] = {0};
+	char caption[16] = {0};
+	char title_bar[128] = {0};
 	struct timeval tv;
 	int time_left, consume;
 
@@ -378,7 +379,9 @@ int main(int argc, char **argv)
 {
 	bool quit_game = 0;
 	Game *thisgame = NULL;
+#if 0
 	int lock_fd, ret;
+#endif
 
 	if(argc == 2) {
 		if(strcmp(argv[1],"-h") == 0) {
@@ -391,6 +394,7 @@ int main(int argc, char **argv)
 		printf("\n      : %s -h\n", argv[0]);
 		exit(0);
 	}
+#if 0
 	lock_fd = open("/var/run/num_slider.pid", O_RDONLY);
 	if(lock_fd < 0) {
 		printf("Error : Opening file\n");
@@ -401,6 +405,7 @@ int main(int argc, char **argv)
 	if(ret != 0) {
 		exit(0);
 	}
+#endif
 	thisgame = initGame();
 
 	for(ever) {

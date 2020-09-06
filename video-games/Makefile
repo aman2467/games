@@ -57,7 +57,7 @@ info:
 	${VERBOSE}echo "                                         -(${RED}o o${YELLOW})-${NONE}"
 	${VERBOSE}echo "${CYAN}======================================${YELLOW}oOO${CYAN}==${YELLOW}(${RED}^${YELLOW})${CYAN}==${YELLOW}OOo${CYAN}=====================================${NONE}"
 	${VERBOSE}echo " "
-	${VERBOSE}echo "${YELLOW}Binary Path :" 
+	${VERBOSE}echo "${YELLOW}Binary Path :"
 	${VERBOSE}echo "        ${GREEN}${BIN_DIR}/${NONE}"
 	${VERBOSE}echo "${YELLOW}Binaries :"
 	${VERBOSE}echo "        ${GREEN}1. num_slider${NONE}"
