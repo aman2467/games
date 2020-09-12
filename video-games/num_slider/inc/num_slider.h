@@ -49,8 +49,9 @@ typedef struct game {
 	int time_out;
 	Uint8 *key;
 	Board board;
-	SDL_Surface* play_screen;
-	SDL_Surface* info_screen;
+	SDL_Surface *play_screen;
+	SDL_Surface *gameover_screen;
+	SDL_Surface *win_screen;
 } Game;
 
 enum game_state {
@@ -84,7 +85,7 @@ void get_user_input(Game *thisgame);
 int isvalid(int index, int key);
 void game_over(int sig);
 void update_game(Game *thisgame);
-void draw_winpage(Game *thisgame);
+void draw_gamepage(Game *thisgame, int is_win);
 void checkcompleted(Game *thisgame);
 void update_timer(Game *thisgame);
 void draw_board(Game *thisgame);
