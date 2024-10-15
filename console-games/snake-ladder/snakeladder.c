@@ -1,124 +1,129 @@
-/* @File   	: snakeladder.c
- * @Auhor  	: Aman Kumar
- * @Brief   : This program simulates the snake-ladder game.
- */ 
+/**
+ * gcc snakeladder.c -o snakeladder
+ */
 
-/*header file*/
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
-
-void display_box(int);
-void display_board(void);
-void init_board(void);
-void play(int *);
-void move_on_board(int *);
-void show_status(void);
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define RED "\x1b[01;31m"
-#define GREEN "\x1b[01;32m"
-#define RES "\x1b[01;0m"
+#define GRN "\x1b[01;30m"
+#define N "\x1b[m"
 
+static int arr[100];
+static int usr1, usr2;
+static int snake_start[] = {28, 36, 53, 63, 76, 88, 96, 99};
+static int snake_end[] = {9, 3, 11, 20, 6, 49, 47, 60};
+static int ladder_start[] = {5, 12, 15, 31, 40, 46, 56, 71};
+static int ladder_end[] = {27, 33, 43, 69, 78, 74, 98, 92};
 
-int arr[100];
-int usr1,usr2;
-int snake_start[]={28,36,53,63,76,88,96,99};
-int snake_end[]={9,3,11,20,6,49,47,60};
-int ladder_start[]={5,12,15,31,40,46,56,71};
-int ladder_end[]={27,33,43,69,78,74,98,92};
-
-main()
+static void
+show_status(void)
 {
-    init_board();
-    display_board();
-    while(1) {
-        printf("\nPlayer "RED"RED"RES": Hit Enter to roll the die..");
-        getchar();
-        play(&usr1);
-        printf("\nPlayer "GREEN"GREEN"RES": Hit Enter to roll the die..");
-        getchar();
-        play(&usr2);
-    }
+	printf("Player "RED"RED"N": %d\n", usr1);
+	printf("Player "GRN"GREEN"N": %d\n", usr2);
 
-}
-void play(int *usr)
-{
-    int new_chance;
-repeat:
-	srand(time(NULL));
-    new_chance=rand()%7;
-	if(new_chance == 0) goto repeat;
-    *usr=*usr+new_chance;
-    move_on_board(usr);
-    if(system("clear") < 0);
-    display_board();
-    printf(GREEN"\nWell..You have got "RED"%d"GREEN" this roll..\n"RES,new_chance);
-    show_status();
-}
-void show_status(void)
-{
-    printf("Player "RED"RED"RES": %d\n",usr1);
-    printf("Player "GREEN"GREEN"RES": %d\n",usr2);
-    if(usr1>=100) {
-        printf("\nPlayer "RED"RED"RES" has won the game..!!\n");
-        exit(0);
-    }
-    if(usr2>=100) {
-        printf("\nPlayer "GREEN"GREEN"RES" has won the game..!!\n");
-        exit(0);
-    }
+	if (usr1 == 100) {
+		printf("\nPlayer "RED"RED"N" has won the game..!!\n");
+		exit(0);
+	}
+	if (usr2 == 100) {
+		printf("\nPlayer "GRN"GREEN"N" has won the game..!!\n");
+		exit(0);
+	}
 }
 
-void move_on_board(int *usr)
+static void
+move_on_board(int *usr)
 {
-    int i;
-    for(i=0;i<8;i++) {
-        if(*usr==snake_start[i]) {
-            *usr=snake_end[i];
-            break;
-        }
-        if(*usr==ladder_start[i]) {
-            *usr=ladder_end[i];
-            break;
-        }
-    }
-    
-}
-void init_board()
-{
-    int i,j;
-    for(i=0,j=100;i<100;i++,j--) {
-        arr[i]=j;
-    }
+	int i;
+
+	for (i = 0; i < 8; i++) {
+		if (*usr == snake_start[i]) {
+			*usr = snake_end[i];
+			break;
+		} else if (*usr == ladder_start[i]) {
+			*usr = ladder_end[i];
+			break;
+		}
+	}
 }
 
-void display_board(void)
+static void
+display_box(int i)
 {
-    int i,j;
-    for(i=0;i<8;i++) {
-        printf(GREEN"Ladder is at %2d which takes you up to %d\t\t",ladder_start[i],ladder_end[i]);
-        printf(RED"Snake is at %2d which takes you down to %d\n"RES,snake_start[i],snake_end[i]);
-    }
-    printf("\n\n");
-    for(i=0;i<10;i++) {
-        printf(" _________ "); 
-    }
-    printf("\n");
-    for(i=1;i<=100;i++) {
-        display_box(i);
-        if(i%10==0) {
-            printf("\n");
-        }
-    }
+	if (arr[i - 1] == usr1)
+		printf("|___"RED"%3d"N"___|", arr[i - 1]);
+	else if (arr[i - 1] == usr2)
+		printf("|___"GRN"%3d"N"___|", arr[i - 1]);
+	else
+		printf("|___%3d___|", arr[i - 1]);
 }
 
-void display_box(int i)
+static void
+display_board(void)
 {
-    if(arr[i-1]==usr1) {
-        printf("|___"RED"%3d"RES"___|",arr[i-1]);
-    } else if (arr[i-1]==usr2) {
-        printf("|___"GREEN"%3d"RES"___|",arr[i-1]);
-    } else {
-        printf("|___%3d___|",arr[i-1]);
-    }
+	int i;
+
+	for (i = 0; i < 8; i++) {
+		printf("Ladder is at %2d which takes you up to %d\t\t",
+		       ladder_start[i],
+		       ladder_end[i]);
+		printf("Snake is at %2d which takes you down to %d\n",
+		       snake_start[i],
+		       snake_end[i]);
+	}
+	printf("\n\n");
+	for (i = 0; i < 10; i++)
+		printf(" _________ ");
+
+	printf("\n");
+	for (i = 1; i <= 100; i++) {
+		display_box(i);
+		if (i % 10 == 0)
+			printf("\n");
+	}
+}
+
+static void
+play(int *usr)
+{
+	int new_chance;
+
+	srand(getpid()*rand());
+	new_chance = rand() % 7;
+	if ((*usr + new_chance) <= 100)
+		*usr = *usr + new_chance;
+	move_on_board(usr);
+	system("clear");
+	display_board();
+	printf("Well..You have got %d this roll..\n", new_chance);
+	show_status();
+}
+
+static void
+init_board(void)
+{
+	int i, j;
+
+	for (i = 0, j = 100; i < 100; i++, j--)
+		arr[i] = j;
+}
+
+int
+main(void)
+{
+	init_board();
+	system("clear");
+	display_board();
+
+	while (1) {
+		printf("\nPlayer "RED"RED"N": Hit Enter to roll the die..");
+		getchar();
+		play(&usr1);
+		printf("\nPlayer "GRN"GREEN"N": Hit Enter to roll the die..");
+		getchar();
+		play(&usr2);
+	}
+	return 0;
 }

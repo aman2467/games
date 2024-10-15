@@ -414,7 +414,7 @@ main(int argc, char **argv)
 	}
 	ret = flock(lock_fd, LOCK_EX | LOCK_NB);
 	/* check if this is the only instance */
-	if(ret != 0) {
+	if (ret != 0) {
 		exit(0);
 	}
 #endif
